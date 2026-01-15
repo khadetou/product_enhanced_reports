@@ -2,6 +2,7 @@
 
 from odoo import fields, models
 from odoo.tools import is_html_empty
+from odoo.tools.mail import html2plaintext
 
 
 class ProductTemplate(models.Model):
@@ -23,14 +24,18 @@ class ProductProduct(models.Model):
 
     def get_product_multiline_description_sale(self):
         """Compute a multiline description of this product, in the context of sales.
-        
+
         Overridden to handle HTML content in description_sale field.
-        The description is kept as HTML to preserve formatting (bullet points, bold, etc.)
-        when rendered in reports.
+        For backend views (sale order lines), HTML is converted to plain text for proper display.
+        For PDF reports, the HTML description is accessed directly from the product to preserve formatting.
         """
         name = self.display_name
         if self.description_sale and not is_html_empty(self.description_sale):
-            # Keep HTML content - it will be rendered properly in reports
-            name += '\n' + self.description_sale
+            # Convert HTML to plain text for the sale order line name field
+            # This ensures proper display in backend views without raw HTML tags
+            # PDF reports access product.description_sale directly to render HTML formatting
+            plain_description = html2plaintext(self.description_sale, include_references=False)
+            if plain_description:
+                name += '\n' + plain_description
         return name
 
