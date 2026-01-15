@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 
+        Extend sale order report to:
+        1. Display product names in bold
+        2. Render HTML descriptions properly (with bullet points, formatting, etc.)
+    -->
+    <template id="report_saleorder_document_enhanced" inherit_id="sale.report_saleorder_document">
+        
+        <!-- Replace the product name display in normal product lines -->
+        <xpath expr="//tr[@name='tr_product']/td[@name='td_product_name']" position="replace">
+            <td name="td_product_name" t-att-class="padding_class">
+                <!-- Display product name in bold -->
+                <strong t-if="line.product_id">
+                    <span t-field="line.product_id.display_name">Product Name</span>
+                </strong>
+                <strong t-else="">
+                    <t t-set="name_parts" t-value="(line.name or '').split('\n', 1)"/>
+                    <span t-out="name_parts[0] if name_parts else ''">Product Name</span>
+                </strong>
+                <!-- Display description below the product name -->
+                <t t-if="line.product_id and line.product_id.description_sale">
+                    <br/>
+                    <!-- Render HTML description properly -->
+                    <span t-field="line.product_id.description_sale" 
+                          t-options="{'widget': 'html'}"
+                          class="text-muted small">
+                        Product description with HTML formatting
+                    </span>
+                </t>
+                <t t-elif="not line.product_id">
+                    <!-- Fallback: show everything after the first line as description -->
+                    <t t-set="name_parts" t-value="(line.name or '').split('\n', 1)"/>
+                    <t t-if="len(name_parts) > 1 and name_parts[1]">
+                        <br/>
+                        <span t-out="name_parts[1]" class="text-muted small">Description</span>
+                    </t>
+                </t>
+            </td>
+        </xpath>
+        
+        <!-- Also update combo lines to have bold product names -->
+        <xpath expr="//tr[@name='tr_combo']/td[@name='td_combo_name']" position="replace">
+            <td name="td_combo_name" t-att-class="padding_class + ' d-flex flex-nowrap'">
+                <span class="me-1" style="width: 20px;">●</span>
+                <div>
+                    <strong>
+                        <span t-field="line.product_id.with_context(display_default_code=False).display_name">
+                            Burger Patty
+                        </span>
+                    </strong>
+                    <t t-if="line.product_id.description_sale">
+                        <br/>
+                        <span t-field="line.product_id.description_sale" 
+                              t-options="{'widget': 'html'}"
+                              class="text-muted small">
+                            Product description
+                        </span>
+                    </t>
+                </div>
+            </td>
+        </xpath>
+
+    </template>
+
+</odoo>
+
