@@ -5,3 +5,5 @@ __pycache__/
 *$py.class
 *.pyc
 *.pyo
+__pycache__/
+*.pyc
